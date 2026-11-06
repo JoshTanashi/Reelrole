@@ -7,7 +7,14 @@ import { spring } from '../../design/motion';
 import { haptics } from '../../haptics/haptics';
 import { unlockAudio, play } from '../../audio/synth';
 import { useNav } from '../../store/nav';
-import { PosterWall } from './PosterWall';
+import { useMemo } from 'react';
+import { InfoIcon, PlusIcon, CheckIcon } from '@phosphor-icons/react';
+import { img } from '../../data/catalogue';
+import { useLibrary } from '../../store/library';
+import { useTaste, tasteSimFn } from '../../store/taste';
+import { useSheet } from '../../store/sheet';
+import { PosterRow } from '../library/Rows';
+import { homeRows } from './homeRows';
 import { QuestionView } from './QuestionView';
 import { Reveal } from './Reveal';
 import { Recap } from './Recap';
@@ -64,37 +71,92 @@ function FindInner({ cat }: { cat: Catalogue }) {
 
 function Start({ cat }: { cat: Catalogue }) {
   const begin = useFind((s) => s.begin);
+  const items = useLibrary((s) => s.items);
+  const vec = useTaste((s) => s.vec);
+  const openTitle = useSheet((s) => s.openTitle);
+  const { spotlight, rows } = useMemo(() => homeRows(cat, items, tasteSimFn(cat, vec)), [cat, items, vec]);
+  const hero = spotlight !== null ? cat.titles[spotlight]! : null;
+  const go = (kind: 'movie' | 'series' | 'any') => {
+    unlockAudio();
+    haptics.light();
+    play('q.whoosh');
+    begin(cat, kind);
+  };
+
   return (
-    <div className="relative flex h-full flex-col">
-      <PosterWall cat={cat} />
-      <div className="relative flex flex-1 flex-col justify-center px-5 pb-[calc(var(--sab)+96px)] pt-[calc(var(--sat)+24px)]">
-        <div className="text-center">
-          <div className="text-[13px] font-semibold uppercase tracking-[0.2em] text-ember">Tonight</div>
-          <h1 className="font-title mt-2 text-[2.9rem] leading-[0.95]">Movie or series?</h1>
-          <p className="mt-3 text-[15px] text-mid">{cat.titles.length.toLocaleString()} titles. A few questions. One pick.</p>
+    <div className="no-scrollbar h-full overflow-y-auto pb-[calc(var(--sab)+110px)]">
+      {/* Spotlight */}
+      <div className="relative h-[62vh] max-h-[560px] min-h-[420px]">
+        {hero?.backdrop && (
+          <motion.img
+            src={img(hero.backdrop, 'w1280')}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+            initial={{ opacity: 0, scale: 1.06 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.2, ease: [0.12, 0.9, 0.18, 1] }}
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-transparent to-bg-0" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/45 to-transparent" />
+        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-5 pt-[calc(var(--sat)+12px)]">
+          <span className="font-wordmark text-[1.5rem] text-hi drop-shadow">reelr<span className="text-grad">o</span>le</span>
+          <span className="rounded-full bg-black/35 px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.16em] text-hi/85 backdrop-blur">Tonight</span>
         </div>
-        <div className="mt-8 grid grid-cols-2 gap-3">
+        {hero && (
+          <div className="absolute inset-x-0 bottom-[150px] px-5">
+            <div className="text-[12px] font-semibold uppercase tracking-[0.2em] text-gold">Spotlight · for you</div>
+            <button className="mt-1 block text-left" onClick={() => openTitle(hero.id)}>
+              <h2 className="font-title text-[2.6rem] leading-[0.95] drop-shadow-[0_4px_20px_rgba(0,0,0,0.7)]">{hero.title}</h2>
+            </button>
+            <p className="mt-2 text-[13px] text-hi/80">
+              {[hero.year, ...hero.genres.slice(0, 2).map((g) => cat.genres[g])].filter(Boolean).join(' · ')} · <span className="font-semibold text-gold">★ {hero.rating.toFixed(1)}</span>
+            </p>
+            <div className="mt-3 flex gap-2">
+              <motion.button whileTap={{ scale: 0.95 }} transition={spring} className="flex h-10 items-center gap-1.5 rounded-full bg-white px-4 text-[14px] font-bold text-black" onClick={() => { haptics.light(); openTitle(hero.id); }}>
+                <InfoIcon size={17} weight="bold" /> Details
+              </motion.button>
+              <motion.button whileTap={{ scale: 0.95 }} transition={spring} className="flex h-10 items-center gap-1.5 rounded-full bg-white/[0.18] px-4 text-[14px] font-semibold backdrop-blur" onClick={() => { haptics.light(); if (!useLibrary.getState().get(hero.id).onList) play('lib.add'); useLibrary.getState().toggleList(hero.id); }}>
+                {items[hero.id]?.onList ? <CheckIcon size={17} weight="bold" /> : <PlusIcon size={17} weight="bold" />} My List
+              </motion.button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* The game */}
+      <motion.section
+        className="glass relative z-10 mx-4 -mt-[132px] rounded-[28px] p-5"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...spring, delay: 0.1 }}
+      >
+        <div className="flex items-baseline justify-between">
+          <h1 className="font-title text-[1.9rem] leading-none">Movie or series?</h1>
+          <span className="text-[12px] text-lo">{cat.titles.length.toLocaleString()} titles</span>
+        </div>
+        <p className="mt-1.5 text-[14px] text-mid">A few questions. One pick you'll actually watch.</p>
+        <div className="mt-4 grid grid-cols-3 gap-2.5">
           {TILES.map((t, i) => (
             <motion.button
               key={t.id}
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ ...spring, delay: 0.05 + i * 0.04 }}
-              whileTap={{ scale: 0.96 }}
-              className={`glass flex h-28 flex-col items-center justify-center gap-2 rounded-card ${i === 2 ? 'col-span-2 h-[76px] flex-row' : ''}`}
-              onClick={() => {
-                unlockAudio();
-                haptics.light();
-                play('q.whoosh');
-                begin(cat, t.id);
-              }}
+              transition={{ ...spring, delay: 0.15 + i * 0.04 }}
+              whileTap={{ scale: 0.95 }}
+              className={`flex h-[88px] flex-col items-center justify-center gap-1.5 rounded-2xl text-[15px] font-semibold ${i === 2 ? 'bg-ember text-white shadow-[0_10px_30px_-10px_rgba(255,46,77,0.8)]' : 'border border-white/10 bg-white/[0.08]'}`}
+              onClick={() => go(t.id)}
             >
-              <span className={i === 2 ? 'text-2xl' : 'text-[2rem]'}>{t.emoji}</span>
-              <span className="text-[17px] font-semibold">{t.label}</span>
+              <span className="text-[1.7rem]">{t.emoji}</span>
+              {i === 2 ? 'Surprise me' : t.label}
             </motion.button>
           ))}
         </div>
-      </div>
+      </motion.section>
+
+      {rows.map((r) => (
+        <PosterRow key={r.title} cat={cat} title={r.title} indices={r.items} numbered={r.numbered} />
+      ))}
     </div>
   );
 }
