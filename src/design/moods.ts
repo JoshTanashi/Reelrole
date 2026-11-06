@@ -27,3 +27,16 @@ export const useMood = create<MoodState>((set) => ({
   intensity: 0.55,
   setMood: (mood, intensity) => set((s) => ({ mood, intensity: intensity ?? s.intensity })),
 }));
+
+const GENRE_MOOD: Record<string, Mood> = {
+  Horror: 'horror', Romance: 'romance', 'Science Fiction': 'scifi', 'Sci-Fi & Fantasy': 'scifi', Comedy: 'comedy',
+  Drama: 'drama', Action: 'action', 'Action & Adventure': 'action', Adventure: 'action', Fantasy: 'fantasy',
+  Animation: 'fantasy', Family: 'fantasy', Kids: 'fantasy', Crime: 'crime', Mystery: 'crime', Thriller: 'crime',
+  Documentary: 'documentary', War: 'action', Western: 'action', Music: 'romance',
+};
+
+/** First genre with a mood wins (TMDB lists the most defining genre first). */
+export function moodForGenres(names: string[]): Mood {
+  for (const n of names) if (GENRE_MOOD[n]) return GENRE_MOOD[n]!;
+  return 'brand';
+}

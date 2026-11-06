@@ -11,8 +11,9 @@ export class Voice {
   private recent: string[] = [];
   constructor(private rng: () => number = Math.random, private lru = 12) {}
 
-  say(tag: string, fallback = 'neutralGood'): string {
-    const pool = LINES[tag]?.length ? LINES[tag]! : LINES[fallback] ?? [''];
+  say(tag: string, fallback = 'neutralGood', filter: (line: string) => boolean = () => true): string {
+    const base = LINES[tag]?.length ? LINES[tag]! : LINES[fallback] ?? [''];
+    const pool = base.filter(filter).length ? base.filter(filter) : base;
     const fresh = pool.filter((l) => !this.recent.includes(l));
     const choices = fresh.length ? fresh : pool;
     const line = choices[Math.floor(this.rng() * choices.length)]!;
