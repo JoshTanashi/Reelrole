@@ -3,9 +3,11 @@ import { createRoot } from 'react-dom/client';
 import { App } from './app/App';
 import './index.css';
 import { startSync } from './data/sync';
+import { setupPWA } from './app/pwa';
 
 const isAdmin = location.pathname.startsWith('/admin');
 if (!isAdmin) startSync();
+setupPWA();
 const AdminApp = lazy(() => import('./features/admin/AdminApp').then((m) => ({ default: m.AdminApp })));
 
 createRoot(document.getElementById('root')!).render(

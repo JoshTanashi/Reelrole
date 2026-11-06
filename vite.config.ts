@@ -9,6 +9,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: false, // registered from src/app/pwa.ts (auto-reload + foreground update checks)
       includeAssets: ['icons/apple-touch-icon.png', 'icons/favicon.svg'],
       manifest: {
         name: 'Reelrole',
@@ -25,26 +26,11 @@ export default defineConfig({
           { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: {
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png}', '**/*latin-wdth*.woff2', '**/*latin-wght*.woff2'],
-        navigateFallback: '/index.html',
-        runtimeCaching: [
-          {
-            // Catalogue: instant from cache, refreshed in the background.
-            urlPattern: ({ url }) => url.pathname.startsWith('/catalogue/'),
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'catalogue' },
-          },
-          {
-            urlPattern: ({ url }) => url.hostname === 'image.tmdb.org',
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'tmdb-images',
-              expiration: { maxEntries: 1500, maxAgeSeconds: 60 * 60 * 24 * 30 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-        ],
       },
     }),
   ],

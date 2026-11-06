@@ -10,7 +10,7 @@
     "preview": "vite preview --host",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc && tsc -p tsconfig.scripts.json && tsc -p tsconfig.sim.json",
+    "typecheck": "tsc && tsc -p tsconfig.scripts.json && tsc -p tsconfig.sim.json && tsc -p tsconfig.sw.json",
     "icons": "node scripts/make-icons.mjs",
     "ingest": "NODE_USE_ENV_PROXY=1 node scripts/ingest/build-catalogue.ts",
     "sim": "tsx scripts/sim-find.ts",

@@ -6,6 +6,7 @@ import { useLibrary } from '../../store/library';
 import { useCatalogue } from '../../data/useCatalogue';
 import { haptics } from '../../haptics/haptics';
 import { spring } from '../../design/motion';
+import { BUILD_ID } from '../../app/pwa';
 
 /** Settings + About (HANDOVER §9.7, attributions per §7.1). */
 export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -64,7 +65,7 @@ export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () =>
             </a>
             .
           </p>
-          <p className="py-3 text-xs text-lo">Catalogue {cat?.version ?? '…'} · {cat?.titles.length.toLocaleString() ?? '…'} titles · Region ZA</p>
+          <p className="py-3 text-xs text-lo">Build {BUILD_ID} · Catalogue {cat?.version ?? '…'} · {cat?.titles.length.toLocaleString() ?? '…'} titles · Region ZA</p>
         </Group>
       </div>
     </Sheet>
