@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { PlusIcon, CheckIcon, HeartIcon, EyeIcon, DotsThreeIcon, ProhibitIcon, StarIcon } from '@phosphor-icons/react';
 import { useLibrary } from '../../store/library';
+import { useTaste, SIGNAL } from '../../store/taste';
+import { useCatalogue } from '../../data/useCatalogue';
 import { haptics } from '../../haptics/haptics';
 import { spring } from '../../design/motion';
 
@@ -9,6 +11,11 @@ import { spring } from '../../design/motion';
 export function ActionRow({ id }: { id: number }) {
   const u = useLibrary((s) => s.items[id]);
   const L = useLibrary.getState();
+  const cat = useCatalogue();
+  const learn = (w: number) => {
+    const i = cat?.indexById.get(id);
+    if (cat && i !== undefined) useTaste.getState().add(cat, i, w);
+  };
   const [askRating, setAskRating] = useState(false);
   const [menu, setMenu] = useState(false);
   const [burst, setBurst] = useState(0);
@@ -24,7 +31,7 @@ export function ActionRow({ id }: { id: number }) {
           active={onList}
           onClick={() => {
             haptics.light();
-            L.toggleList(id);
+            learn(L.toggleList(id) ? SIGNAL.list : -SIGNAL.list);
           }}
         >
           <AnimatePresence mode="popLayout" initial={false}>
@@ -40,7 +47,10 @@ export function ActionRow({ id }: { id: number }) {
           tint="#FF4D6D"
           onClick={() => {
             haptics.light();
-            if (L.toggleLike(id)) setBurst((b) => b + 1);
+            if (L.toggleLike(id)) {
+              setBurst((b) => b + 1);
+              learn(SIGNAL.like);
+            } else learn(-SIGNAL.like);
           }}
         >
           <span className="relative">
@@ -83,7 +93,7 @@ export function ActionRow({ id }: { id: number }) {
                 className="glass absolute right-0 top-[calc(100%+8px)] z-10 flex items-center gap-2 whitespace-nowrap rounded-2xl px-4 py-3 text-sm font-semibold"
                 onClick={() => {
                   haptics.medium();
-                  L.toggleNotForMe(id);
+                  learn(L.toggleNotForMe(id) ? SIGNAL.notForMe : -SIGNAL.notForMe);
                   setMenu(false);
                 }}
               >

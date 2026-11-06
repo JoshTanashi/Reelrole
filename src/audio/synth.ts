@@ -37,7 +37,7 @@ function noiseBuffer(c: AudioContext, seconds: number) {
   return b;
 }
 
-type Key = 'reel.tick' | 'reel.stop' | 'reel.lever' | 'ui.tap' | 'roll.confetti';
+type Key = 'reel.tick' | 'reel.stop' | 'reel.lever' | 'ui.tap' | 'roll.confetti' | 'swipe.right' | 'swipe.left' | 'swipe.up';
 
 export function play(key: Key, opts: { pitch?: number } = {}) {
   if (!usePrefs.getState().sound) return;
@@ -107,6 +107,46 @@ export function play(key: Key, opts: { pitch?: number } = {}) {
       o.connect(g).connect(out);
       o.start(t);
       o.stop(t + 0.05);
+      break;
+    }
+    case 'swipe.right': {
+      // Bright 2-note ding, up.
+      [740, 1108].forEach((f, i) => {
+        const o = c.createOscillator();
+        o.type = 'sine';
+        o.frequency.value = f;
+        const g = c.createGain();
+        env(g, t + i * 0.06, 0.2, 0.003, 0.16);
+        o.connect(g).connect(out);
+        o.start(t + i * 0.06);
+        o.stop(t + i * 0.06 + 0.2);
+      });
+      break;
+    }
+    case 'swipe.left': {
+      // Soft low thud.
+      const o = c.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(180, t);
+      o.frequency.exponentialRampToValueAtTime(70, t + 0.12);
+      const g = c.createGain();
+      env(g, t, 0.35, 0.004, 0.13);
+      o.connect(g).connect(out);
+      o.start(t);
+      o.stop(t + 0.18);
+      break;
+    }
+    case 'swipe.up': {
+      // Paper flick: short high-passed noise.
+      const n = c.createBufferSource();
+      n.buffer = noiseBuffer(c, 0.12);
+      const hp = c.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 2500;
+      const g = c.createGain();
+      env(g, t, 0.28, 0.002, 0.1);
+      n.connect(hp).connect(g).connect(out);
+      n.start(t);
       break;
     }
     case 'roll.confetti': {

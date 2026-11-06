@@ -7,7 +7,8 @@ import type { Catalogue } from './catalogue';
  */
 const cache = new WeakMap<Catalogue, Float32Array>();
 
-function normalised(cat: Catalogue): Float32Array {
+/** Mean-centred, L2-normalised trait vectors (N × K), cached per catalogue. */
+export function normalised(cat: Catalogue): Float32Array {
   const hit = cache.get(cat);
   if (hit) return hit;
   const K = cat.traitKeys.length;

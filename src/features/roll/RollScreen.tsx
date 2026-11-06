@@ -19,6 +19,7 @@ import { RollFilters } from './Filters';
 import { useShake } from './useShake';
 import { useRoll } from './store';
 import { rollPool, weightedPick } from './pool';
+import { useTaste, tasteSimFn } from '../../store/taste';
 
 function useViewportHeight() {
   const [h, setH] = useState(() => (typeof window === 'undefined' ? 844 : window.innerHeight));
@@ -58,7 +59,9 @@ export function RollScreen() {
   const roll = async () => {
     if (!cat || spinning || !reel.current) return;
     unlockAudio();
-    const winner = weightedPick(cat, pool);
+    const sim = tasteSimFn(cat, useTaste.getState().vec);
+    const boost = sim ? (i: number) => 1 + 0.6 * Math.max(0, sim(i)) : undefined;
+    const winner = weightedPick(cat, pool, Math.random, boost);
     if (winner === null) {
       setEmpty(true);
       haptics.light();

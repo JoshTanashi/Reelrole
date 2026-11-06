@@ -24,6 +24,8 @@ interface LibraryState {
   setWatched: (id: number, watched: boolean, rating?: number | null) => void;
   setRating: (id: number, rating: number | null) => void;
   toggleNotForMe: (id: number) => boolean;
+  /** Put back an exact previous state (undo). */
+  restore: (id: number, prev: UserTitle | undefined) => void;
   clear: () => void;
 }
 
@@ -54,6 +56,13 @@ export const useLibrary = create<LibraryState>()(
           patch(id, on ? { notForMe: true, onList: false, liked: get().get(id).liked === true ? null : get().get(id).liked } : { notForMe: false });
           return on;
         },
+        restore: (id, prev) =>
+          set((s) => {
+            const items = { ...s.items };
+            if (prev) items[id] = prev;
+            else delete items[id];
+            return { items };
+          }),
         clear: () => set({ items: {} }),
       };
     },
