@@ -83,3 +83,12 @@
   .pt-safe { padding-top: var(--sat); }
   .pb-safe { padding-bottom: var(--sab); }
 }
+
+/* Registered so mood colours interpolate (HANDOVER §5.2: lerp over 1.2s). */
+@property --m0 { syntax: '<color>'; inherits: true; initial-value: #ff2e4d; }
+@property --m1 { syntax: '<color>'; inherits: true; initial-value: #e81cff; }
+@property --m2 { syntax: '<color>'; inherits: true; initial-value: #6a3bff; }
+.mesh { transition: --m0 1.2s ease, --m1 1.2s ease, --m2 1.2s ease; }
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }

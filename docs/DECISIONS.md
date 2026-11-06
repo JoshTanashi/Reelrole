@@ -23,3 +23,4 @@ Answers from Joshie (2026-11-06) and calls made since. Newest at the bottom.
 | M1 | Catalogue | Prebuilt static catalogue in `public/catalogue/` (core.json + traits.bin + 32 detail buckets), rebuilt with `npm run ingest`. 2,000 movies + 1,000 series + SA titles boosted in. |
 | M1 | Cloud env | Personal environment `reelrole` allows api.themoviedb.org + image.tmdb.org; TMDB token is a proxy-injected secret, never in repo. |
 | M1 | ZA provider gap | TMDB/JustWatch ZA data has Netflix, Prime Video, Apple TV, Crunchyroll, MUBI, Apple TV Store (rent/buy)… but **no Showmax / Disney+ / DStv Stream / BritBox**. Only ~31% of titles show a ZA streaming service. Needs Joshie's call. |
+| M1 | Where to watch | **Info only.** Show ZA providers on the detail sheet when a title has any; never used for matching (no service boost, no "only my services" filter, no services step in onboarding). |
