@@ -1,3 +1,4 @@
+import { applyCorrections } from './remote';
 // Client catalogue (HANDOVER §7.5): core.json + traits.bin, cached by the service worker.
 export type Kind = 'movie' | 'series';
 export type ProvType = 'flatrate' | 'rent' | 'buy' | 'free' | 'ads';
@@ -80,7 +81,9 @@ export function loadCatalogue(): Promise<Catalogue> {
       fetch(`${BASE}/core.json`).then((r) => r.json()),
       fetch(`${BASE}/traits.bin`).then((r) => r.arrayBuffer()),
     ]);
-    return buildCatalogue(core, new Uint8Array(bin));
+    const cat = buildCatalogue(core, new Uint8Array(bin));
+    applyCorrections(cat); // crowd-learned trait nudges (cached from Supabase)
+    return cat;
   })();
   return loading;
 }

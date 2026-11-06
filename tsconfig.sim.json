@@ -19,6 +19,7 @@
   },
   "include": [
     "scripts/sim-find.ts",
+    "scripts/seed-db.ts",
     "src/engine",
     "src/data"
   ],

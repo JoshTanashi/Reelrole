@@ -61,7 +61,7 @@ export function Recap({ cat }: { cat: Catalogue }) {
           className="h-[52px] rounded-full bg-ember font-bold text-white"
           onClick={() => {
             haptics.medium();
-            reset();
+            reset(cat);
           }}
         >
           Play again

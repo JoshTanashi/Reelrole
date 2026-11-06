@@ -261,7 +261,7 @@ export function Reveal({ cat }: { cat: Catalogue }) {
                   className="h-12 rounded-full border border-line text-[14px] font-semibold text-mid"
                   onClick={() => {
                     haptics.light();
-                    reset();
+                    reset(cat);
                   }}
                 >
                   New round

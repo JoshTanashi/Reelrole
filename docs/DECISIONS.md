@@ -25,3 +25,5 @@ Answers from Joshie (2026-11-06) and calls made since. Newest at the bottom.
 | M1 | ZA provider gap | TMDB/JustWatch ZA data has Netflix, Prime Video, Apple TV, Crunchyroll, MUBI, Apple TV Store (rent/buy)… but **no Showmax / Disney+ / DStv Stream / BritBox**. Only ~31% of titles show a ZA streaming service. Needs Joshie's call. |
 | M1 | Where to watch | **Info only.** Show ZA providers on the detail sheet when a title has any; never used for matching (no service boost, no "only my services" filter, no services step in onboarding). |
 | M6 | Trait tagging | **No LLM/AI pass, ever.** Improve the rules tagger + engine instead ("just a super smart engine"). |
+| M9 | Find home | Start screen was "lonely": now spotlight hero + game card + personalised rows. |
+| M9 | Backend | Supabase project `yjbbtecdqhwxllgponls`. Anonymous auth per phone; /admin via magic link (admin: father8son951@gmail.com). No edge functions; learning is pg_cron SQL. See docs/BACKEND.md. |

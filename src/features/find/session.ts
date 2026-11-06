@@ -1,15 +1,16 @@
 import { create } from 'zustand';
 import type { Catalogue } from '../../data/catalogue';
 import { FindEngine, type AnswerResult, type EngineSnapshot } from '../../engine/find-engine';
-import { loadQuestions } from '../../engine/questions';
 import type { Answer, Question } from '../../engine/types';
-import seed from '../../../data/questions.seed.json';
+import { match } from '../../engine/likelihood';
+import { trait } from '../../data/catalogue';
+import { currentQuestions } from '../../data/remote';
+import { queueTraitFeedback, syncNow } from '../../data/sync';
 import { useLibrary } from '../../store/library';
 import { useTaste, tasteSimFn, SIGNAL } from '../../store/taste';
 import { useMood, moodForGenres } from '../../design/moods';
 import { voiceSession } from '../../voice/reactions';
 
-export const QUESTIONS: Question[] = loadQuestions(seed as never);
 
 export type Phase = 'start' | 'question' | 'reveal' | 'recap';
 
@@ -20,6 +21,8 @@ export interface Step {
   aliveBefore: number;
   aliveAfter: number;
   ms: number;
+  /** Raw answer (option id / chips / slider) for crowd feedback. */
+  raw?: Answer;
 }
 
 interface Saved {
@@ -29,6 +32,9 @@ interface Saved {
   qid: string | null;
   rejected: number[];
   savedAt: number;
+  sessionId?: string;
+  startedAt?: number;
+  kind?: string;
 }
 
 const SAVE_KEY = 'reelrole.find.session.v1';
@@ -47,6 +53,9 @@ interface FindState {
   winner: number | null;
   runnersUp: number[];
   rejected: number[];
+  sessionId: string;
+  startedAt: number;
+  kind: string;
   /** "Start over?" confirm (X button or re-tapping the Find tab mid-session). */
   leaveAsk: boolean;
   setLeaveAsk: (v: boolean) => void;
@@ -57,7 +66,7 @@ interface FindState {
   askMore: (cat: Catalogue) => void;
   toRecap: () => void;
   backToReveal: () => void;
-  reset: () => void;
+  reset: (cat?: Catalogue) => void;
   resume: (cat: Catalogue) => boolean;
 }
 
@@ -82,7 +91,8 @@ function makeEngine(cat: Catalogue, snap?: EngineSnapshot) {
     seed: Date.now() & 0xffffffff,
     recentQuestionIds: history().qids.slice(-3).flat(),
   };
-  return snap ? FindEngine.restore(cat, QUESTIONS, ctx, snap) : new FindEngine(cat, QUESTIONS, ctx);
+  const questions = currentQuestions();
+  return snap ? FindEngine.restore(cat, questions, ctx, snap) : new FindEngine(cat, questions, ctx);
 }
 
 function labelFor(q: Question, ans: Answer): string {
@@ -99,7 +109,7 @@ export const useFind = create<FindState>((set, get) => {
   const save = () => {
     const s = get();
     if (!s.engine) return;
-    const data: Saved = { snap: s.engine.snapshot(), steps: s.steps, phase: s.phase, qid: s.question?.id ?? null, rejected: s.rejected, savedAt: Date.now() };
+    const data: Saved = { snap: s.engine.snapshot(), steps: s.steps, phase: s.phase, qid: s.question?.id ?? null, rejected: s.rejected, savedAt: Date.now(), sessionId: s.sessionId, startedAt: s.startedAt, kind: s.kind };
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(data));
     } catch {
@@ -129,17 +139,22 @@ export const useFind = create<FindState>((set, get) => {
     save();
   };
 
-  const finishLog = (outcome: string) => {
+  const finishLog = (outcome: string, cat?: Catalogue) => {
     const s = get();
     if (!s.steps.length) return;
+    if (cat) queueTraitFeedback(crowdFeedback(cat, s.steps, outcome === 'accepted' ? s.winner : null, s.rejected));
     const h = history();
     h.qids = [...h.qids, s.steps.map((x) => x.qid)].slice(-10);
-    h.logs = [...h.logs, { at: Date.now(), steps: s.steps, winner: s.winner, runnersUp: s.runnersUp, rejected: s.rejected, outcome }].slice(-100);
+    h.logs = [
+      ...h.logs,
+      { id: s.sessionId, at: Date.now(), startedAt: s.startedAt, kind: s.kind, steps: s.steps.map(({ raw: _raw, ...x }) => x), winner: s.winner, runnersUp: s.runnersUp, rejected: s.rejected, outcome },
+    ].slice(-100);
     try {
       localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
     } catch {
       /* ignore */
     }
+    void syncNow();
   };
 
   return {
@@ -155,12 +170,15 @@ export const useFind = create<FindState>((set, get) => {
     winner: null,
     runnersUp: [],
     rejected: [],
+    sessionId: '',
+    startedAt: 0,
+    kind: 'any',
     leaveAsk: false,
     setLeaveAsk: (v) => set({ leaveAsk: v }),
 
     begin: (cat, kind) => {
       const e = makeEngine(cat);
-      set({ engine: e, steps: [], winner: null, runnersUp: [], rejected: [], reaction: null, lastResult: null, aliveCount: e.alive().length });
+      set({ engine: e, steps: [], winner: null, runnersUp: [], rejected: [], reaction: null, lastResult: null, aliveCount: e.alive().length, sessionId: crypto.randomUUID(), startedAt: Date.now(), kind });
       const q = e.next()!; // q_kind
       set({ question: q, shownAt: performance.now() });
       get().submit(cat, kind, labelFor(q, kind));
@@ -170,7 +188,7 @@ export const useFind = create<FindState>((set, get) => {
       const { engine: e, question: q, shownAt, steps } = get();
       if (!e || !q) return;
       const r = e.answer(q.id, ans);
-      const step: Step = { qid: q.id, prompt: q.prompt, answer: label, aliveBefore: r.aliveBefore, aliveAfter: r.aliveAfter, ms: Math.round(performance.now() - shownAt) };
+      const step: Step = { qid: q.id, prompt: q.prompt, answer: label, aliveBefore: r.aliveBefore, aliveAfter: r.aliveAfter, ms: Math.round(performance.now() - shownAt), raw: ans };
       // Voice priority (§11): contextual tag (40% if triggered) → option tag → generic.
       const ctxTag = r.contextTags[0];
       const tag = ctxTag && Math.random() < 0.4 ? ctxTag : r.reactionTag ?? 'neutralGood';
@@ -209,9 +227,9 @@ export const useFind = create<FindState>((set, get) => {
     toRecap: () => set({ phase: 'recap' }),
     backToReveal: () => set({ phase: 'reveal' }),
 
-    reset: () => {
+    reset: (cat) => {
       const s = get();
-      if (s.phase === 'reveal' || s.phase === 'recap') finishLog(s.winner !== null && useLibrary.getState().items[s.winner]?.onList ? 'accepted' : 'done');
+      if (s.phase === 'reveal' || s.phase === 'recap') finishLog(s.winner !== null && useLibrary.getState().items[s.winner]?.onList ? 'accepted' : 'done', cat);
       else if (s.steps.length) finishLog('abandoned');
       try {
         localStorage.removeItem(SAVE_KEY);
@@ -230,7 +248,7 @@ export const useFind = create<FindState>((set, get) => {
         if (Date.now() - d.savedAt > 3 * 3600_000 || d.snap.p.length !== cat.titles.length) return false;
         const e = makeEngine(cat, d.snap);
         const alive = e.alive();
-        set({ engine: e, steps: d.steps, rejected: d.rejected, aliveCount: alive.length, aliveTop: alive.slice(0, WALL) });
+        set({ engine: e, steps: d.steps, rejected: d.rejected, aliveCount: alive.length, aliveTop: alive.slice(0, WALL), sessionId: d.sessionId ?? crypto.randomUUID(), startedAt: d.startedAt ?? d.savedAt, kind: d.kind ?? 'any' });
         if (d.phase === 'question') {
           const q = e.next();
           if (!q) toReveal(cat, e);
@@ -251,4 +269,34 @@ export function acceptPick(cat: Catalogue, id: number) {
   if (!L.get(id).onList) L.toggleList(id);
   const i = cat.indexById.get(id);
   if (i !== undefined) useTaste.getState().add(cat, i, SIGNAL.list);
+}
+
+/**
+ * Crowd trait correction signals (HANDOVER §12.3). If the user accepted a title that contradicts one of
+ * their answers, nudge that trait toward what they asked for (η = 0.02). Rejected titles that matched an
+ * answer well get a smaller nudge the other way. learn() aggregates and caps at ±0.25.
+ */
+function crowdFeedback(cat: Catalogue, steps: Step[], accepted: number | null, rejected: number[]) {
+  const qs = new Map(currentQuestions().map((q) => [q.id, q]));
+  const out: { title_id: number; trait: string; delta: number }[] = [];
+  const effectsOf = (st: Step) => {
+    const q = qs.get(st.qid);
+    if (!q || st.raw === undefined || typeof st.raw !== 'string') return [];
+    return q.options.find((o) => o.id === st.raw)?.effects ?? [];
+  };
+  const judge = (id: number, eta: number, wantMismatch: boolean) => {
+    const i = cat.indexById.get(id);
+    if (i === undefined) return;
+    for (const st of steps)
+      for (const e of effectsOf(st)) {
+        if (e.strength < 0.5) continue;
+        const x = trait(cat, i, e.trait);
+        const m = match(e.op, x, e.value ?? 0.5);
+        const up = e.op === 'gte' || e.op === 'has';
+        if (wantMismatch ? m < 0.3 : m > 0.8) out.push({ title_id: id, trait: e.trait, delta: (up ? 1 : -1) * eta * (wantMismatch ? 1 : -1) });
+      }
+  };
+  if (accepted !== null) judge(accepted, 0.02, true);
+  for (const id of rejected) judge(id, 0.01, false);
+  return out.slice(0, 12);
 }

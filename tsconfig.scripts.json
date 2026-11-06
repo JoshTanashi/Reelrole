@@ -15,6 +15,7 @@
     "scripts/**/*.ts"
   ],
   "exclude": [
-    "scripts/sim-find.ts"
+    "scripts/sim-find.ts",
+    "scripts/seed-db.ts"
   ]
 }

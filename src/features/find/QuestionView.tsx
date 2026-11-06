@@ -166,7 +166,7 @@ export function QuestionView({ cat }: { cat: Catalogue }) {
                   onClick={() => {
                     haptics.medium();
                     setConfirmLeave(false);
-                    reset();
+                    reset(cat);
                   }}
                 >
                   Start over

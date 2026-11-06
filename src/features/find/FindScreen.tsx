@@ -54,8 +54,8 @@ function FindInner({ cat }: { cat: Catalogue }) {
     if (resetSignal === first.current) return;
     const s = useFind.getState();
     if (s.phase === 'question') s.setLeaveAsk(true);
-    else if (s.phase !== 'start') s.reset();
-  }, [resetSignal]);
+    else if (s.phase !== 'start') s.reset(cat);
+  }, [resetSignal, cat]);
 
   return (
     <AnimatePresence mode="wait" initial={false}>
