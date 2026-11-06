@@ -1,0 +1,45 @@
+/* Reelrole design tokens — HANDOVER §5. Single source of truth; Tailwind maps onto these. */
+:root {
+  /* Base: cinematic near-black, slightly warm */
+  --bg-0: #07060a;
+  --bg-1: #0f0d14;
+  --bg-2: #18151f;
+  --line: rgba(255, 255, 255, 0.08);
+  --text-hi: #f6f3fa;
+  --text-mid: rgba(246, 243, 250, 0.68);
+  --text-lo: rgba(246, 243, 250, 0.42);
+
+  /* Brand: "Ember" leads (red-first, cinematic). Gradient is the accent, not the wallpaper. */
+  --ember-500: #ff2e4d;
+  --ember-600: #e0173a;
+  --magenta-500: #e81cff;
+  --violet-500: #6a3bff;
+  --gold-400: #ffc857;
+  --grad-brand: linear-gradient(135deg, #ff2e4d 0%, #e81cff 52%, #6a3bff 100%);
+
+  /* Semantic */
+  --yes: #3df5a7;
+  --no: #ff4d6d;
+  --maybe: #ffc857;
+
+  /* Glass (§5.4) */
+  --glass-bg: rgba(20, 16, 28, 0.55);
+  --glass-blur: blur(24px) saturate(160%);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  /* Radii */
+  --r-poster: 14px;
+  --r-card: 20px;
+  --r-sheet: 28px;
+  --r-pill: 999px;
+
+  /* Safe areas */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+
+  /* Type */
+  --font-display: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
+  --font-ui: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+}

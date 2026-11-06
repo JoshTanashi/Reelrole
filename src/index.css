@@ -1,0 +1,85 @@
+@import '@fontsource-variable/archivo/wdth.css';
+@import '@fontsource-variable/inter/index.css';
+@import 'tailwindcss';
+@import './design/tokens.css';
+
+@theme inline {
+  --color-bg-0: var(--bg-0);
+  --color-bg-1: var(--bg-1);
+  --color-bg-2: var(--bg-2);
+  --color-line: var(--line);
+  --color-hi: var(--text-hi);
+  --color-mid: var(--text-mid);
+  --color-lo: var(--text-lo);
+  --color-ember: var(--ember-500);
+  --color-ember-600: var(--ember-600);
+  --color-magenta: var(--magenta-500);
+  --color-violet: var(--violet-500);
+  --color-gold: var(--gold-400);
+  --color-yes: var(--yes);
+  --color-no: var(--no);
+  --color-maybe: var(--maybe);
+  --font-display: var(--font-display);
+  --font-ui: var(--font-ui);
+  --radius-poster: var(--r-poster);
+  --radius-card: var(--r-card);
+  --radius-sheet: var(--r-sheet);
+}
+
+@layer base {
+  html {
+    background: var(--bg-0);
+    color: var(--text-hi);
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+    background: var(--bg-0);
+  }
+  button {
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+}
+
+@layer utilities {
+  /* Condensed, heavy display cut: the "poster title" voice */
+  .font-title {
+    font-family: var(--font-display);
+    font-variation-settings: 'wdth' 72;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  /* Wide cut for the wordmark */
+  .font-wordmark {
+    font-family: var(--font-display);
+    font-variation-settings: 'wdth' 118;
+    font-weight: 800;
+    letter-spacing: -0.045em;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .text-grad {
+    background: var(--grad-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .glass {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--line);
+    box-shadow: var(--glass-highlight);
+  }
+  .pt-safe { padding-top: var(--sat); }
+  .pb-safe { padding-bottom: var(--sab); }
+}
