@@ -37,7 +37,7 @@ function noiseBuffer(c: AudioContext, seconds: number) {
   return b;
 }
 
-type Key = 'reel.tick' | 'reel.stop' | 'reel.lever' | 'ui.tap' | 'roll.confetti' | 'swipe.right' | 'swipe.left' | 'swipe.up';
+type Key = 'reel.tick' | 'reel.stop' | 'reel.lever' | 'ui.tap' | 'roll.confetti' | 'swipe.right' | 'swipe.left' | 'swipe.up' | 'q.pop' | 'q.whoosh' | 'count.tick' | 'count.drop' | 'reveal.drum' | 'reveal.sting';
 
 export function play(key: Key, opts: { pitch?: number } = {}) {
   if (!usePrefs.getState().sound) return;
@@ -147,6 +147,109 @@ export function play(key: Key, opts: { pitch?: number } = {}) {
       env(g, t, 0.28, 0.002, 0.1);
       n.connect(hp).connect(g).connect(out);
       n.start(t);
+      break;
+    }
+    case 'q.pop': {
+      const o = c.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(520, t);
+      o.frequency.exponentialRampToValueAtTime(980, t + 0.06);
+      const g = c.createGain();
+      env(g, t, 0.22, 0.004, 0.1);
+      o.connect(g).connect(out);
+      o.start(t);
+      o.stop(t + 0.13);
+      break;
+    }
+    case 'q.whoosh': {
+      const n = c.createBufferSource();
+      n.buffer = noiseBuffer(c, 0.3);
+      const bp = c.createBiquadFilter();
+      bp.type = 'lowpass';
+      bp.frequency.setValueAtTime(400, t);
+      bp.frequency.exponentialRampToValueAtTime(2200, t + 0.12);
+      bp.frequency.exponentialRampToValueAtTime(500, t + 0.25);
+      const g = c.createGain();
+      env(g, t, 0.16, 0.06, 0.18);
+      n.connect(bp).connect(g).connect(out);
+      n.start(t);
+      break;
+    }
+    case 'count.tick': {
+      const n = c.createBufferSource();
+      n.buffer = noiseBuffer(c, 0.02);
+      const hp = c.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 3500;
+      const g = c.createGain();
+      env(g, t, 0.12, 0.001, 0.015);
+      n.connect(hp).connect(g).connect(out);
+      n.start(t);
+      break;
+    }
+    case 'count.drop': {
+      // Descending "fwoomp".
+      const o = c.createOscillator();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(420, t);
+      o.frequency.exponentialRampToValueAtTime(90, t + 0.38);
+      const lp = c.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 900;
+      const g = c.createGain();
+      env(g, t, 0.35, 0.02, 0.36);
+      o.connect(lp).connect(g).connect(out);
+      o.start(t);
+      o.stop(t + 0.45);
+      break;
+    }
+    case 'reveal.drum': {
+      // ~700ms snare roll, crescendo.
+      for (let k = 0; k < 18; k++) {
+        const at = t + k * 0.038;
+        const n = c.createBufferSource();
+        n.buffer = noiseBuffer(c, 0.05);
+        const bp = c.createBiquadFilter();
+        bp.type = 'bandpass';
+        bp.frequency.value = 1800;
+        bp.Q.value = 0.8;
+        const g = c.createGain();
+        env(g, at, 0.08 + (k / 18) * 0.28, 0.002, 0.04);
+        n.connect(bp).connect(g).connect(out);
+        n.start(at);
+      }
+      break;
+    }
+    case 'reveal.sting': {
+      // Original 2-note "bwaa-oom": a rising fifth on detuned saws + sub boom. Not a ta-dum.
+      const notes: [number, number][] = [[196, 0], [293.7, 0.2]];
+      for (const [f, d] of notes) {
+        for (const det of [-7, 0, 7]) {
+          const o = c.createOscillator();
+          o.type = 'sawtooth';
+          o.frequency.value = f;
+          o.detune.value = det;
+          const lp = c.createBiquadFilter();
+          lp.type = 'lowpass';
+          lp.frequency.setValueAtTime(500, t + d);
+          lp.frequency.exponentialRampToValueAtTime(2600, t + d + 0.25);
+          lp.frequency.exponentialRampToValueAtTime(700, t + d + 1.0);
+          const g = c.createGain();
+          env(g, t + d, 0.07, 0.05, 0.95);
+          o.connect(lp).connect(g).connect(out);
+          o.start(t + d);
+          o.stop(t + d + 1.1);
+        }
+      }
+      const sub = c.createOscillator();
+      sub.type = 'sine';
+      sub.frequency.setValueAtTime(70, t + 0.2);
+      sub.frequency.exponentialRampToValueAtTime(40, t + 1.1);
+      const sg = c.createGain();
+      env(sg, t + 0.2, 0.55, 0.01, 0.9);
+      sub.connect(sg).connect(out);
+      sub.start(t + 0.2);
+      sub.stop(t + 1.2);
       break;
     }
     case 'roll.confetti': {
