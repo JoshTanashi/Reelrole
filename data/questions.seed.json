@@ -1,0 +1,288 @@
+{
+  "version": 1,
+  "notes": "Seed bank. The engine generates more from templates (see 'templates'). effects: [{trait, op, value?, strength}]. op: gte|lte|near|has|not|eq. 'hard' filters are applied as pool filters, not likelihoods. Every non-opening question should keep an Either/Don't-care option (effects: []).",
+  "opening": [
+    {
+      "id": "q_kind", "kind": "tri", "groupKey": "kind", "order": 1,
+      "prompt": "Movie or series?", "subprompt": "Let's start easy.",
+      "options": [
+        { "id": "movie", "label": "Movie", "emoji": "🎬", "hard": { "kind": "movie" }, "effects": [], "reactionTag": "kindMovie" },
+        { "id": "series", "label": "Series", "emoji": "📺", "hard": { "kind": "series" }, "effects": [], "reactionTag": "kindSeries" },
+        { "id": "any", "label": "Surprise me", "emoji": "🎲", "effects": [], "reactionTag": "surprise" }
+      ]
+    },
+    {
+      "id": "q_who", "kind": "chips-single", "groupKey": "who", "order": 2,
+      "prompt": "Who's watching?",
+      "options": [
+        { "id": "solo", "label": "Just me", "emoji": "🛋️", "effects": [], "reactionTag": "solo" },
+        { "id": "date", "label": "Date night", "emoji": "🍷", "effects": [{ "trait": "romance", "op": "gte", "value": 0.3, "strength": 0.25 }, { "trait": "gore", "op": "lte", "value": 0.6, "strength": 0.3 }], "reactionTag": "date" },
+        { "id": "friends", "label": "The crew", "emoji": "🍕", "effects": [{ "trait": "laughs", "op": "gte", "value": 0.3, "strength": 0.15 }], "reactionTag": "friends" },
+        { "id": "family", "label": "Family + kids", "emoji": "👨‍👩‍👧", "hard": { "family_safe": 1 }, "effects": [], "reactionTag": "family" }
+      ]
+    },
+    {
+      "id": "q_time_movie", "kind": "tri", "groupKey": "length", "order": 3, "requires": { "kind": "movie" },
+      "prompt": "How much time you got?",
+      "options": [
+        { "id": "short", "label": "Under 100 min", "emoji": "⚡", "effects": [{ "trait": "len_short", "op": "has", "strength": 0.85 }], "reactionTag": "quick" },
+        { "id": "normal", "label": "A normal movie", "emoji": "🍿", "effects": [{ "trait": "len_long", "op": "not", "strength": 0.6 }], "reactionTag": "neutralGood" },
+        { "id": "long", "label": "I've got all night", "emoji": "🌙", "effects": [], "reactionTag": "allNight" }
+      ]
+    },
+    {
+      "id": "q_time_series", "kind": "tri", "groupKey": "length", "order": 3, "requires": { "kind": "series" },
+      "prompt": "How committed are we?",
+      "options": [
+        { "id": "limited", "label": "One season, done", "emoji": "✅", "effects": [{ "trait": "commit_limited", "op": "has", "strength": 0.85 }], "reactionTag": "quick" },
+        { "id": "few", "label": "A few seasons", "emoji": "📦", "effects": [{ "trait": "commit_long_haul", "op": "not", "strength": 0.6 }], "reactionTag": "neutralGood" },
+        { "id": "long", "label": "Give me a long one", "emoji": "♾️", "effects": [{ "trait": "commit_long_haul", "op": "has", "strength": 0.7 }], "reactionTag": "allNight" }
+      ]
+    }
+  ],
+  "questions": [
+    { "id": "q_vibe_mood", "kind": "mood", "groupKey": "mood", "prompt": "Pick a colour for tonight's mood",
+      "options": [
+        { "id": "cosy", "label": "Cosy", "swatch": ["#FFB38A", "#FF7AA2"], "effects": [{ "trait": "feelgood", "op": "gte", "value": 0.55, "strength": 0.7 }, { "trait": "darkness", "op": "lte", "value": 0.4, "strength": 0.5 }], "reactionTag": "cosy" },
+        { "id": "dark", "label": "Dark", "swatch": ["#3A0010", "#8B0012"], "effects": [{ "trait": "darkness", "op": "gte", "value": 0.6, "strength": 0.7 }], "reactionTag": "dark" },
+        { "id": "electric", "label": "Electric", "swatch": ["#00E5FF", "#6A3BFF"], "effects": [{ "trait": "pace", "op": "gte", "value": 0.6, "strength": 0.6 }, { "trait": "spectacle", "op": "gte", "value": 0.5, "strength": 0.4 }], "reactionTag": "hype" },
+        { "id": "dreamy", "label": "Dreamy", "swatch": ["#C77DFF", "#7CFFCB"], "effects": [{ "trait": "weird", "op": "gte", "value": 0.4, "strength": 0.5 }, { "trait": "romance", "op": "gte", "value": 0.3, "strength": 0.3 }], "reactionTag": "dreamy" },
+        { "id": "wild", "label": "Wild", "swatch": ["#FFD23F", "#FF2E8A"], "effects": [{ "trait": "laughs", "op": "gte", "value": 0.5, "strength": 0.5 }, { "trait": "weird", "op": "gte", "value": 0.4, "strength": 0.4 }], "reactionTag": "funny" },
+        { "id": "heavy", "label": "Heavy", "swatch": ["#3C096C", "#1B1B2F"], "effects": [{ "trait": "cry", "op": "gte", "value": 0.55, "strength": 0.6 }, { "trait": "brain", "op": "gte", "value": 0.5, "strength": 0.4 }], "reactionTag": "heavy" }
+      ] },
+
+    { "id": "q_scary", "kind": "tri", "groupKey": "scare", "prompt": "Wanna be scared?",
+      "options": [
+        { "id": "yes", "label": "Scare me", "emoji": "😱", "effects": [{ "trait": "scare", "op": "gte", "value": 0.55, "strength": 0.85 }], "reactionTag": "scary" },
+        { "id": "no", "label": "Nope, no thanks", "emoji": "🙅", "effects": [{ "trait": "scare", "op": "lte", "value": 0.35, "strength": 0.8 }], "reactionTag": "safe" },
+        { "id": "either", "label": "A little is fine", "emoji": "🤏", "effects": [{ "trait": "scare", "op": "lte", "value": 0.75, "strength": 0.4 }], "reactionTag": "maybe" }
+      ] },
+
+    { "id": "q_scare_type", "kind": "tri", "groupKey": "scare_sub", "requires": { "trait_mass": { "scare": ">0.35" }, "answered": { "q_scary": "yes" } },
+      "prompt": "Jump scares or slow creeping dread?",
+      "options": [
+        { "id": "jump", "label": "Jump scares", "emoji": "⚡", "effects": [{ "trait": "pace", "op": "gte", "value": 0.55, "strength": 0.5 }], "reactionTag": "scary" },
+        { "id": "dread", "label": "Slow dread", "emoji": "🕯️", "effects": [{ "trait": "slow_burn", "op": "gte", "value": 0.55, "strength": 0.6 }], "reactionTag": "dark" },
+        { "id": "either", "label": "Both, obviously", "emoji": "😈", "effects": [], "reactionTag": "brave" }
+      ] },
+
+    { "id": "q_gore", "kind": "tri", "groupKey": "gore", "requires": { "trait_mass": { "scare": ">0.25" } },
+      "prompt": "How do you feel about blood?",
+      "options": [
+        { "id": "bring", "label": "Bring it", "emoji": "🩸", "effects": [{ "trait": "gore", "op": "gte", "value": 0.5, "strength": 0.6 }], "reactionTag": "brave" },
+        { "id": "minimal", "label": "Keep it minimal", "emoji": "🫣", "effects": [{ "trait": "gore", "op": "lte", "value": 0.4, "strength": 0.7 }], "reactionTag": "safe" },
+        { "id": "either", "label": "Don't mind", "emoji": "🤷", "effects": [], "reactionTag": "chill" }
+      ] },
+
+    { "id": "q_laugh", "kind": "tri", "groupKey": "laughs", "prompt": "Need a good laugh?",
+      "options": [
+        { "id": "yes", "label": "Yes please", "emoji": "😂", "effects": [{ "trait": "laughs", "op": "gte", "value": 0.55, "strength": 0.8 }], "reactionTag": "funny" },
+        { "id": "no", "label": "Not tonight", "emoji": "😐", "effects": [{ "trait": "laughs", "op": "lte", "value": 0.45, "strength": 0.6 }], "reactionTag": "serious" },
+        { "id": "either", "label": "A few is nice", "emoji": "🙂", "effects": [], "reactionTag": "maybe" }
+      ] },
+
+    { "id": "q_cry", "kind": "tri", "groupKey": "cry", "prompt": "Up for a cry?",
+      "options": [
+        { "id": "yes", "label": "Destroy me", "emoji": "😭", "effects": [{ "trait": "cry", "op": "gte", "value": 0.6, "strength": 0.75 }], "reactionTag": "heavy" },
+        { "id": "no", "label": "Keep me dry", "emoji": "🌵", "effects": [{ "trait": "cry", "op": "lte", "value": 0.45, "strength": 0.6 }], "reactionTag": "safe" },
+        { "id": "either", "label": "Whatever happens", "emoji": "🤷", "effects": [], "reactionTag": "chill" }
+      ] },
+
+    { "id": "q_brain", "kind": "slider", "groupKey": "brain", "prompt": "Brain on or brain off?",
+      "slider": { "trait": "brain", "left": "Brain off 🧃", "right": "Make me think 🧠", "detents": 5 },
+      "options": [], "reactionTag": "brainy" },
+
+    { "id": "q_intensity", "kind": "slider", "groupKey": "intensity", "prompt": "How intense?",
+      "slider": { "trait": "intensity", "left": "Chill 😌", "right": "Edge of my seat 😰", "detents": 5 },
+      "options": [], "reactionTag": "hype" },
+
+    { "id": "q_pace", "kind": "slider", "groupKey": "pace", "prompt": "Pace check",
+      "slider": { "trait": "pace", "left": "Slow & savoury 🍷", "right": "Non-stop 🏎️", "detents": 5 },
+      "options": [], "reactionTag": "neutralGood" },
+
+    { "id": "q_romance", "kind": "tri", "groupKey": "romance", "prompt": "Any romance?",
+      "options": [
+        { "id": "yes", "label": "Love it", "emoji": "💘", "effects": [{ "trait": "romance", "op": "gte", "value": 0.5, "strength": 0.7 }], "reactionTag": "romantic" },
+        { "id": "no", "label": "Skip the kissing", "emoji": "🙈", "effects": [{ "trait": "romance", "op": "lte", "value": 0.4, "strength": 0.6 }], "reactionTag": "funny" },
+        { "id": "either", "label": "A sprinkle", "emoji": "✨", "effects": [], "reactionTag": "maybe" }
+      ] },
+
+    { "id": "q_action", "kind": "tri", "groupKey": "action", "prompt": "Explosions?",
+      "options": [
+        { "id": "yes", "label": "Blow stuff up", "emoji": "💥", "effects": [{ "trait": "action", "op": "gte", "value": 0.6, "strength": 0.75 }], "reactionTag": "hype" },
+        { "id": "no", "label": "Keep it calm", "emoji": "🕊️", "effects": [{ "trait": "action", "op": "lte", "value": 0.4, "strength": 0.6 }], "reactionTag": "chill" },
+        { "id": "either", "label": "Don't mind", "emoji": "🤷", "effects": [], "reactionTag": "chill" }
+      ] },
+
+    { "id": "q_real", "kind": "tri", "groupKey": "real", "prompt": "Real life or pure make-believe?",
+      "options": [
+        { "id": "real", "label": "Real-world", "emoji": "🌍", "effects": [{ "trait": "setting_other_world", "op": "not", "strength": 0.6 }, { "trait": "weird", "op": "lte", "value": 0.5, "strength": 0.4 }], "reactionTag": "grounded" },
+        { "id": "fantasy", "label": "Take me somewhere else", "emoji": "🪐", "effects": [{ "trait": "spectacle", "op": "gte", "value": 0.5, "strength": 0.5 }, { "trait": "weird", "op": "gte", "value": 0.35, "strength": 0.5 }], "reactionTag": "dreamy" },
+        { "id": "either", "label": "Either", "emoji": "🤷", "effects": [], "reactionTag": "chill" }
+      ] },
+
+    { "id": "q_true_story", "kind": "tri", "groupKey": "true_story", "prompt": "Based on a true story?",
+      "options": [
+        { "id": "yes", "label": "Yes, real stuff", "emoji": "📰", "effects": [{ "trait": "true_story", "op": "has", "strength": 0.8 }], "reactionTag": "grounded" },
+        { "id": "no", "label": "Nah, fiction", "emoji": "📖", "effects": [{ "trait": "true_story", "op": "not", "strength": 0.5 }], "reactionTag": "neutralGood" },
+        { "id": "either", "label": "Doesn't matter", "emoji": "🤷", "effects": [], "reactionTag": "chill" }
+      ] },
+
+    { "id": "q_animated", "kind": "tri", "groupKey": "animated", "prompt": "Animated?",
+      "options": [
+        { "id": "yes", "label": "Love animation", "emoji": "🎨", "effects": [{ "trait": "animated", "op": "has", "strength": 0.85 }], "reactionTag": "dreamy" },
+        { "id": "no", "label": "Live-action only", "emoji": "🎥", "effects": [{ "trait": "animated", "op": "not", "strength": 0.85 }], "reactionTag": "neutralGood" },
+        { "id": "either", "label": "Either", "emoji": "🤷", "effects": [], "reactionTag": "chill" }
+      ] },
+
+    { "id": "q_subs", "kind": "tri", "groupKey": "subs", "prompt": "Subtitles OK?",
+      "options": [
+        { "id": "yes", "label": "Love a foreign gem", "emoji": "🌏", "effects": [], "reactionTag": "cultured" },
+        { "id": "no", "label": "English please", "emoji": "🗣️", "effects": [{ "trait": "subtitles_needed", "op": "not", "strength": 0.9 }], "reactionTag": "neutralGood" },
+        { "id": "only", "label": "Only foreign!", "emoji": "🎌", "effects": [{ "trait": "subtitles_needed", "op": "has", "strength": 0.85 }], "reactionTag": "cultured" }
+      ] },
+
+    { "id": "q_era", "kind": "chips-single", "groupKey": "era", "prompt": "Pick an era",
+      "options": [
+        { "id": "classic", "label": "Old-school classic", "emoji": "🎞️", "effects": [{ "trait": "era_classic", "op": "has", "strength": 0.75 }], "reactionTag": "nostalgic" },
+        { "id": "retro", "label": "80s & 90s", "emoji": "📼", "effects": [{ "trait": "era_retro", "op": "has", "strength": 0.75 }], "reactionTag": "nostalgic" },
+        { "id": "y2k", "label": "2000s", "emoji": "💿", "effects": [{ "trait": "era_y2k", "op": "has", "strength": 0.75 }], "reactionTag": "nostalgic" },
+        { "id": "new", "label": "Fresh, last few years", "emoji": "🆕", "effects": [{ "trait": "era_recent", "op": "has", "strength": 0.7 }], "reactionTag": "neutralGood" },
+        { "id": "any", "label": "Any era", "emoji": "🤷", "effects": [], "reactionTag": "chill" }
+      ] },
+
+    { "id": "q_popular", "kind": "tri", "groupKey": "popular", "prompt": "Crowd favourite or hidden gem?",
+      "options": [
+        { "id": "popular", "label": "Something everyone's seen", "emoji": "🏆", "effects": [{ "trait": "hidden_gem", "op": "lte", "value": 0.4, "strength": 0.6 }], "reactionTag": "neutralGood" },
+        { "id": "gem", "label": "A hidden gem", "emoji": "💎", "effects": [{ "trait": "hidden_gem", "op": "gte", "value": 0.55, "strength": 0.7 }], "reactionTag": "cultured" },
+        { "id": "either", "label": "Just make it good", "emoji": "👌", "effects": [{ "trait": "acclaim", "op": "gte", "value": 0.5, "strength": 0.3 }], "reactionTag": "chill" }
+      ] },
+
+    { "id": "q_twist", "kind": "tri", "groupKey": "twist", "prompt": "Want a twist that messes with you?",
+      "options": [
+        { "id": "yes", "label": "Mess with me", "emoji": "🌀", "effects": [{ "trait": "has_twist", "op": "has", "strength": 0.7 }], "reactionTag": "brainy" },
+        { "id": "no", "label": "Keep it simple", "emoji": "➡️", "effects": [{ "trait": "brain", "op": "lte", "value": 0.6, "strength": 0.4 }], "reactionTag": "chill" },
+        { "id": "either", "label": "Surprise me", "emoji": "🎁", "effects": [], "reactionTag": "surprise" }
+      ] },
+
+    { "id": "q_ending", "kind": "tri", "groupKey": "ending", "prompt": "How should it end?",
+      "options": [
+        { "id": "happy", "label": "Happy, please", "emoji": "🌈", "effects": [{ "trait": "ending_happy", "op": "has", "strength": 0.6 }], "reactionTag": "cosy" },
+        { "id": "messy", "label": "Leave me wrecked", "emoji": "🥀", "effects": [{ "trait": "ending_dark", "op": "has", "strength": 0.4 }, { "trait": "ending_bittersweet", "op": "has", "strength": 0.3 }], "reactionTag": "dark" },
+        { "id": "either", "label": "Don't spoil it!", "emoji": "🤐", "effects": [], "reactionTag": "funny" }
+      ] },
+
+    { "id": "q_setting", "kind": "chips", "groupKey": "setting", "prompt": "Any of these settings sound good?", "subprompt": "Pick as many as you like",
+      "options": [
+        { "id": "space", "label": "Space", "emoji": "🚀", "effects": [{ "trait": "setting_space", "op": "has", "strength": 0.6 }] },
+        { "id": "future", "label": "The future", "emoji": "🤖", "effects": [{ "trait": "setting_future", "op": "has", "strength": 0.6 }] },
+        { "id": "historical", "label": "Back in time", "emoji": "🏛️", "effects": [{ "trait": "setting_historical", "op": "has", "strength": 0.6 }] },
+        { "id": "small_town", "label": "Small town", "emoji": "🏡", "effects": [{ "trait": "setting_small_town", "op": "has", "strength": 0.6 }] },
+        { "id": "big_city", "label": "Big city", "emoji": "🌃", "effects": [{ "trait": "setting_big_city", "op": "has", "strength": 0.6 }] },
+        { "id": "wilderness", "label": "The wild", "emoji": "🌲", "effects": [{ "trait": "setting_wilderness", "op": "has", "strength": 0.6 }] },
+        { "id": "ocean", "label": "Ocean", "emoji": "🌊", "effects": [{ "trait": "setting_ocean", "op": "has", "strength": 0.6 }] },
+        { "id": "none", "label": "None of these", "emoji": "🚫", "effects": [], "exclusive": true }
+      ], "reactionTag": "neutralGood", "combine": "any" },
+
+    { "id": "q_themes_a", "kind": "chips", "groupKey": "themes", "prompt": "Any of these sound fun?",
+      "options": [
+        { "id": "heist", "label": "A heist", "emoji": "💰", "effects": [{ "trait": "theme_heist", "op": "has", "strength": 0.6 }] },
+        { "id": "time_travel", "label": "Time travel", "emoji": "⏳", "effects": [{ "trait": "theme_time_travel", "op": "has", "strength": 0.6 }] },
+        { "id": "spy", "label": "Spies", "emoji": "🕶️", "effects": [{ "trait": "theme_spy", "op": "has", "strength": 0.6 }] },
+        { "id": "survival", "label": "Survival", "emoji": "🏔️", "effects": [{ "trait": "theme_survival", "op": "has", "strength": 0.6 }] },
+        { "id": "revenge", "label": "Revenge", "emoji": "🗡️", "effects": [{ "trait": "theme_revenge", "op": "has", "strength": 0.6 }] },
+        { "id": "underdog", "label": "Underdog wins", "emoji": "🥊", "effects": [{ "trait": "theme_underdog", "op": "has", "strength": 0.6 }] },
+        { "id": "none", "label": "None of these", "emoji": "🚫", "effects": [], "exclusive": true }
+      ], "reactionTag": "interesting", "combine": "any" },
+
+    { "id": "q_themes_dark", "kind": "chips", "groupKey": "themes", "requires": { "trait_mass": { "darkness": ">0.4" } }, "prompt": "Pick your poison",
+      "options": [
+        { "id": "serial_killer", "label": "Serial killer", "emoji": "🔪", "effects": [{ "trait": "theme_serial_killer", "op": "has", "strength": 0.65 }] },
+        { "id": "cults", "label": "Creepy cult", "emoji": "🕯️", "effects": [{ "trait": "theme_cults", "op": "has", "strength": 0.65 }] },
+        { "id": "mafia", "label": "Mafia / gangs", "emoji": "🎩", "effects": [{ "trait": "theme_mafia", "op": "has", "strength": 0.65 }] },
+        { "id": "conspiracy", "label": "Conspiracy", "emoji": "🕵️", "effects": [{ "trait": "theme_conspiracy", "op": "has", "strength": 0.65 }] },
+        { "id": "true_crime", "label": "True crime", "emoji": "🗂️", "effects": [{ "trait": "theme_true_crime", "op": "has", "strength": 0.65 }] },
+        { "id": "none", "label": "None of these", "emoji": "🚫", "effects": [], "exclusive": true }
+      ], "reactionTag": "dark", "combine": "any" },
+
+    { "id": "q_themes_creatures", "kind": "chips", "groupKey": "themes", "requires": { "trait_mass": { "scare": ">0.3" } }, "prompt": "Who's coming for you?",
+      "options": [
+        { "id": "zombies", "label": "Zombies", "emoji": "🧟", "effects": [{ "trait": "theme_zombies", "op": "has", "strength": 0.7 }] },
+        { "id": "ghosts", "label": "Ghosts", "emoji": "👻", "effects": [{ "trait": "theme_ghosts", "op": "has", "strength": 0.7 }] },
+        { "id": "aliens", "label": "Aliens", "emoji": "👽", "effects": [{ "trait": "theme_aliens", "op": "has", "strength": 0.7 }] },
+        { "id": "monsters", "label": "Monsters", "emoji": "🦑", "effects": [{ "trait": "theme_monsters", "op": "has", "strength": 0.7 }] },
+        { "id": "humans", "label": "Just people…", "emoji": "🧍", "effects": [{ "trait": "theme_home_invasion", "op": "has", "strength": 0.4 }, { "trait": "theme_serial_killer", "op": "has", "strength": 0.4 }] },
+        { "id": "none", "label": "Surprise me", "emoji": "🎁", "effects": [], "exclusive": true }
+      ], "reactionTag": "scary", "combine": "any" },
+
+    { "id": "q_feelgood", "kind": "binary", "groupKey": "feelgood", "prompt": "Should I leave you smiling?",
+      "options": [
+        { "id": "yes", "label": "Yes, warm fuzzies", "emoji": "🥰", "effects": [{ "trait": "feelgood", "op": "gte", "value": 0.55, "strength": 0.7 }], "reactionTag": "cosy" },
+        { "id": "no", "label": "Nah, rattle me", "emoji": "⚡", "effects": [{ "trait": "feelgood", "op": "lte", "value": 0.5, "strength": 0.5 }], "reactionTag": "brave" }
+      ] },
+
+    { "id": "q_weird", "kind": "tri", "groupKey": "weird", "prompt": "How weird can it get?",
+      "options": [
+        { "id": "normal", "label": "Keep it normal", "emoji": "🧍", "effects": [{ "trait": "weird", "op": "lte", "value": 0.4, "strength": 0.6 }], "reactionTag": "grounded" },
+        { "id": "weird", "label": "Get weird", "emoji": "🦄", "effects": [{ "trait": "weird", "op": "gte", "value": 0.55, "strength": 0.7 }], "reactionTag": "weird" },
+        { "id": "either", "label": "A bit is fine", "emoji": "🤏", "effects": [], "reactionTag": "maybe" }
+      ] },
+
+    { "id": "q_spectacle", "kind": "binary", "groupKey": "spectacle", "prompt": "Big-screen spectacle or small and personal?",
+      "options": [
+        { "id": "big", "label": "Go big", "emoji": "🌋", "effects": [{ "trait": "spectacle", "op": "gte", "value": 0.6, "strength": 0.65 }], "reactionTag": "hype" },
+        { "id": "small", "label": "Small & personal", "emoji": "🕯️", "effects": [{ "trait": "spectacle", "op": "lte", "value": 0.45, "strength": 0.6 }], "reactionTag": "interesting" }
+      ] },
+
+    { "id": "q_lead", "kind": "tri", "groupKey": "lead", "after": 5, "prompt": "Who's the hero?",
+      "options": [
+        { "id": "one", "label": "One main character", "emoji": "🧑", "effects": [{ "trait": "ensemble", "op": "not", "strength": 0.45 }], "reactionTag": "neutralGood" },
+        { "id": "squad", "label": "A whole squad", "emoji": "👯", "effects": [{ "trait": "ensemble", "op": "has", "strength": 0.6 }], "reactionTag": "friends" },
+        { "id": "either", "label": "Doesn't matter", "emoji": "🤷", "effects": [], "reactionTag": "chill" }
+      ] },
+
+    { "id": "q_franchise", "kind": "tri", "groupKey": "franchise", "prompt": "Part of a big franchise?",
+      "options": [
+        { "id": "yes", "label": "Love a universe", "emoji": "🌌", "effects": [{ "trait": "franchise", "op": "has", "strength": 0.6 }], "reactionTag": "hype" },
+        { "id": "no", "label": "Standalone please", "emoji": "1️⃣", "effects": [{ "trait": "franchise", "op": "not", "strength": 0.6 }], "reactionTag": "neutralGood" },
+        { "id": "either", "label": "Either", "emoji": "🤷", "effects": [], "reactionTag": "chill" }
+      ] },
+
+    { "id": "q_local", "kind": "tri", "groupKey": "local", "after": 4, "prompt": "Something proudly South African?",
+      "options": [
+        { "id": "yes", "label": "Ja, lekker", "emoji": "🇿🇦", "effects": [{ "trait": "south_african", "op": "has", "strength": 0.75 }], "reactionTag": "local" },
+        { "id": "africa", "label": "African stories", "emoji": "🌍", "effects": [{ "trait": "african", "op": "has", "strength": 0.65 }], "reactionTag": "local" },
+        { "id": "either", "label": "Anywhere's fine", "emoji": "🗺️", "effects": [], "reactionTag": "chill" }
+      ] },
+
+    { "id": "q_duel_generated", "kind": "duel", "groupKey": "duel", "after": 3, "generated": true,
+      "prompt": "This vibe or that vibe?",
+      "notes": "Engine picks 2 alive, popular titles that are FAR apart on the most uncertain trait axis. Choosing one = 'near' that title's trait vector on the top 3 differing traits (strength 0.5). Option 3: 'Neither' (small negative on both)." },
+
+    { "id": "q_seen_generated", "kind": "binary", "groupKey": "probe", "after": 6, "generated": true,
+      "prompt": "Seen {title}?",
+      "notes": "Probe the current #1. Yes → 'Did you love it?' → if yes, boost its nearest neighbours (excluding itself); if no, down-weight neighbours. No → keep it, small boost (curiosity). Max 1 per session." }
+  ],
+  "templates": {
+    "notes": "Generate extra questions automatically: one per theme in traits.themes and per setting, phrased with the patterns below. Only eligible when the theme has ≥3% and ≤60% of alive mass (so it actually splits).",
+    "theme_patterns": [
+      "Feeling some {label}?",
+      "{label}: yes or nah?",
+      "How about {label}?",
+      "Would {label} make your night?"
+    ],
+    "theme_labels": {
+      "time_travel": "time travel", "heist": "a heist", "zombies": "zombies", "vampires": "vampires",
+      "ghosts": "ghosts", "aliens": "aliens", "ai_robots": "robots & AI", "sports": "sports",
+      "music": "music", "war": "war stories", "superhero": "superheroes", "courtroom": "courtroom drama",
+      "cooking": "food & cooking", "animals": "animals", "road_trip": "a road trip", "spy": "spies",
+      "pirates": "pirates", "dragons": "dragons", "christmas": "Christmas vibes", "dance": "dancing",
+      "detective": "a detective", "royalty": "royals", "martial_arts": "martial arts", "cars": "fast cars"
+    },
+    "option_set": [
+      { "id": "yes", "label": "Yes!", "emoji": "🙌", "effects": [{ "trait": "theme_{key}", "op": "has", "strength": 0.6 }], "reactionTag": "great" },
+      { "id": "no", "label": "Nah", "emoji": "👎", "effects": [{ "trait": "theme_{key}", "op": "not", "strength": 0.45 }], "reactionTag": "noted" },
+      { "id": "either", "label": "Don't mind", "emoji": "🤷", "effects": [], "reactionTag": "chill" }
+    ]
+  }
+}
