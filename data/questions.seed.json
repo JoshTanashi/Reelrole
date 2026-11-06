@@ -147,6 +147,7 @@
         { "id": "classic", "label": "Old-school classic", "emoji": "🎞️", "effects": [{ "trait": "era_classic", "op": "has", "strength": 0.75 }], "reactionTag": "nostalgic" },
         { "id": "retro", "label": "80s & 90s", "emoji": "📼", "effects": [{ "trait": "era_retro", "op": "has", "strength": 0.75 }], "reactionTag": "nostalgic" },
         { "id": "y2k", "label": "2000s", "emoji": "💿", "effects": [{ "trait": "era_y2k", "op": "has", "strength": 0.75 }], "reactionTag": "nostalgic" },
+        { "id": "tens", "label": "2010s", "emoji": "📱", "effects": [{ "trait": "era_tens", "op": "has", "strength": 0.75 }], "reactionTag": "neutralGood" },
         { "id": "new", "label": "Fresh, last few years", "emoji": "🆕", "effects": [{ "trait": "era_recent", "op": "has", "strength": 0.7 }], "reactionTag": "neutralGood" },
         { "id": "any", "label": "Any era", "emoji": "🤷", "effects": [], "reactionTag": "chill" }
       ] },

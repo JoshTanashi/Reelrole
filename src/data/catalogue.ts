@@ -52,7 +52,7 @@ export interface Catalogue {
   traits: Float32Array;
 }
 
-const BASE = `${import.meta.env.BASE_URL}catalogue`;
+const BASE = `${import.meta.env?.BASE_URL ?? "/"}catalogue`;
 const DETAIL_BUCKETS = 32;
 
 export function decodeTraits(bytes: Uint8Array): Float32Array {
