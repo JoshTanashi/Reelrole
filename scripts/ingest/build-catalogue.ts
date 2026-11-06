@@ -199,6 +199,10 @@ async function main() {
   }
   buckets.forEach((b, i) => writeFileSync(join(OUT, 'detail', `${i}.json`), JSON.stringify(b)));
 
+  // Search index: original title + top-4 cast per title, aligned with core.titles order.
+  const search = rows.map((r) => [r.originalTitle !== r.title ? r.originalTitle : '', r.cast.slice(0, 4).map((c: { name: string }) => c.name).join('|')]);
+  writeFileSync(join(OUT, 'search.json'), JSON.stringify(search));
+
   // Report
   const n = (k: string) => rows.filter((r) => r.kind === k).length;
   const withProv = rows.filter((r) => Object.keys(r.providers).length).length;

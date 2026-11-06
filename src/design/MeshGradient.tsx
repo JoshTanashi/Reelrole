@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from 'motion/react';
+import { motion, useReducedMotionConfig } from 'motion/react';
 import { MOODS, useMood } from './moods';
 
 /**
@@ -15,7 +15,7 @@ const BLOBS = [
 
 export function MeshGradient() {
   const { mood, intensity } = useMood();
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   const colors = MOODS[mood];
   return (
     <div

@@ -5,7 +5,7 @@
 - With trailer: 2891 · With backdrop: 2996
 - South African titles: 146
 - core.json: 1.13 MB (0.35 MB gz) · traits.bin: 354 KB
-- Built in 19s
+- Built in 20s
 
 ## ZA providers (titles in catalogue, any type)
 

@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { AnimatePresence, animate, motion, useDragControls, useMotionValue, useReducedMotion, useTransform } from 'motion/react';
+import { AnimatePresence, animate, motion, useDragControls, useMotionValue, useReducedMotionConfig, useTransform } from 'motion/react';
 import { springGentle } from '../design/motion';
 import { haptics } from '../haptics/haptics';
 import { sheetProgress } from './sheetProgress';
@@ -25,7 +25,7 @@ export function Sheet(props: SheetProps) {
 }
 
 function SheetBody({ onClose, children, initial = 1, onProgress, label = 'Details' }: SheetProps) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   const H = vh();
   const yFor = (d: number) => H * (1 - d);
   const y = useMotionValue(H);

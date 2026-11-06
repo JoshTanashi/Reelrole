@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
-import { motion, useReducedMotion } from 'motion/react';
+import { motion, useReducedMotionConfig } from 'motion/react';
 import { img, type Catalogue } from '../../data/catalogue';
 
 /** Faint drifting wall of tiny posters behind Find (HANDOVER §9.2). w92, 30% opacity. */
 export function PosterWall({ cat, count = 72 }: { cat: Catalogue; count?: number }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   const picks = useMemo(() => {
     const top = cat.titles.map((_, i) => i).sort((a, b) => cat.titles[b]!.popularity - cat.titles[a]!.popularity).slice(0, 600);
     return top.sort(() => Math.random() - 0.5).slice(0, count);

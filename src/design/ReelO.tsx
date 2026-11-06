@@ -1,8 +1,8 @@
-import { motion, useReducedMotion } from 'motion/react';
+import { motion, useReducedMotionConfig } from 'motion/react';
 
 /** The "o" in reelrole, drawn as a film reel. Spins once on the intro, then rests. */
 export function ReelO({ size = '0.74em', spin = true, delay = 0 }: { size?: string; spin?: boolean; delay?: number }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   const holes = Array.from({ length: 5 }, (_, i) => {
     const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
     return { cx: 50 + Math.cos(a) * 24, cy: 50 + Math.sin(a) * 24 };

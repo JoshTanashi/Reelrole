@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
-import { motion, useTransform } from 'motion/react';
+import { MotionConfig, motion, useTransform } from 'motion/react';
+import { usePrefs } from '../store/prefs';
+import { useSheet } from '../store/sheet';
 import { MeshGradient } from '../design/MeshGradient';
 import { Grain } from '../design/Grain';
 import { useMood, type Mood } from '../design/moods';
@@ -31,9 +33,13 @@ export function App() {
   const radius = useTransform(sheetProgress, [0, 0.05, 1], [0, 18, 28]);
   const dim = useTransform(sheetProgress, [0, 1], [0, 0.35]);
 
+  const reducedMotion = usePrefs((s) => s.reducedMotion);
+  const sheetOpen = useSheet((s) => s.titleId !== null);
+
   return (
+    <MotionConfig reducedMotion={reducedMotion ? 'always' : 'user'}>
     <div className="fixed inset-0 overflow-hidden bg-black">
-      <motion.div className="absolute inset-0 overflow-hidden" style={{ scale, borderRadius: radius }}>
+      <motion.div className="absolute inset-0 overflow-hidden" style={{ scale, borderRadius: radius }} aria-hidden={sheetOpen || undefined}>
         <MeshGradient />
         <main className="absolute inset-0">
           <FindScreen />
@@ -48,5 +54,6 @@ export function App() {
       <Grain />
       <Sting />
     </div>
+    </MotionConfig>
   );
 }

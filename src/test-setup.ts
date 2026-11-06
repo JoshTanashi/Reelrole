@@ -1,3 +1,4 @@
+import 'fake-indexeddb/auto';
 import '@testing-library/jest-dom/vitest';
 
 // jsdom lacks element scrolling.

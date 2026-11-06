@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from 'motion/react';
+import { motion, useReducedMotionConfig } from 'motion/react';
 import { ReelO } from './ReelO';
 
 const LETTERS = ['r', 'e', 'e', 'l', 'r', 'o', 'l', 'e'] as const;
@@ -8,7 +8,7 @@ const LETTERS = ['r', 'e', 'e', 'l', 'r', 'o', 'l', 'e'] as const;
  * Intro: letters rise in, the "o" reel spins down, then a light sweep passes once.
  */
 export function Wordmark({ className = '', play = 0 }: { className?: string; play?: number }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionConfig();
   return (
     <h1 key={play} className={`font-wordmark relative inline-flex items-baseline leading-none ${className}`} aria-label="reelrole">
       {LETTERS.map((ch, i) =>
