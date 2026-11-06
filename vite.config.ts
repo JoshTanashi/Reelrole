@@ -30,7 +30,7 @@ export default defineConfig({
       srcDir: 'src',
       filename: 'sw.ts',
       injectManifest: {
-        globPatterns: ['**/*.{js,css,html,svg,png}', '**/*latin-wdth*.woff2', '**/*latin-wght*.woff2'],
+        injectionPoint: undefined, // no precache: install must never be able to fail (see src/sw.ts)
       },
     }),
   ],

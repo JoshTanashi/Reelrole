@@ -1,41 +1,82 @@
 /// <reference lib="webworker" />
-// Custom service worker (injectManifest). Keeps the app shell + catalogue offline and updates reliably.
-import { PrecacheController, PrecacheRoute, cleanupOutdatedCaches } from 'workbox-precaching';
-import { NavigationRoute, registerRoute } from 'workbox-routing';
-import { StaleWhileRevalidate } from 'workbox-strategies';
+// Reelrole service worker. Design goal: an update must ALWAYS be able to install, whatever state the
+// phone's storage is in, and a launch while online must ALWAYS show the latest version.
+//
+// Why: builds up to M9 cached TMDB posters as opaque responses, which browsers count as ~7 MB each
+// (117 posters ≈ 880 MB). Storage filled up, every new worker failed to install with QuotaExceededError,
+// and installed apps stayed on an old build. So:
+// - install writes nothing (cannot hit the quota) and deletes the legacy caches;
+// - the app page is network-first (latest build every online launch; cached copy only when offline);
+// - hashed assets / fonts / icons / catalogue are cached as they're used, and failed writes are ignored;
+// - posters are never stored here: the browser's HTTP cache keeps them (TMDB sends max-age = 1 year).
 
-declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: Array<{ url: string; revision: string | null }> };
+export {};
+declare const self: ServiceWorkerGlobalScope;
 
-// Builds up to M9 cached TMDB posters here as *opaque* responses. Browsers count each of those as several MB,
-// so the quota filled up and every later update failed to install (phones got stuck on an old version).
-// Posters now rely on the browser's HTTP cache (TMDB sends max-age = 1 year), so this cache must go.
-const LEGACY_CACHES = ['tmdb-images'];
+const APP = 'reelrole-app-v2';
+const CATALOGUE = 'reelrole-catalogue-v2';
+const KEEP = new Set([APP, CATALOGUE]);
 
-const precache = new PrecacheController();
-precache.addToCacheList(self.__WB_MANIFEST);
+const put = async (cacheName: string, key: Request | string, res: Response) => {
+  try {
+    const c = await caches.open(cacheName);
+    await c.put(key, res);
+  } catch {
+    /* full or unavailable storage: serving still works, we just don't cache */
+  }
+};
 
 self.addEventListener('install', (event) => {
   void self.skipWaiting();
-  event.waitUntil(
-    (async () => {
-      await Promise.all(LEGACY_CACHES.map((c) => caches.delete(c))); // free the quota *before* precaching
-      await precache.install(event);
-    })(),
-  );
+  event.waitUntil(caches.delete('tmdb-images').then(() => undefined));
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
-      await precache.activate(event);
-      await Promise.all(LEGACY_CACHES.map((c) => caches.delete(c)));
+      for (const k of await caches.keys()) if (!KEEP.has(k)) await caches.delete(k); // old precache, poster cache, etc.
       await self.clients.claim();
     })(),
   );
 });
 
-cleanupOutdatedCaches();
-registerRoute(new PrecacheRoute(precache));
-registerRoute(new NavigationRoute(precache.createHandlerBoundToURL('/index.html')));
-// Catalogue: instant from cache, refreshed in the background. Same-origin + small, so no quota risk.
-registerRoute(({ url }) => url.origin === self.location.origin && url.pathname.startsWith('/catalogue/'), new StaleWhileRevalidate({ cacheName: 'catalogue' }));
+async function appPage(req: Request): Promise<Response> {
+  try {
+    const res = await fetch(req, { cache: 'no-store' });
+    if (res.ok) void put(APP, '/index.html', res.clone());
+    return res;
+  } catch {
+    return (await caches.match('/index.html', { cacheName: APP })) ?? Response.error();
+  }
+}
+
+async function cacheFirst(req: Request, cacheName: string): Promise<Response> {
+  const hit = await caches.match(req, { cacheName });
+  if (hit) return hit;
+  const res = await fetch(req);
+  if (res.ok && res.type === 'basic') void put(cacheName, req, res.clone());
+  return res;
+}
+
+async function staleWhileRevalidate(req: Request, cacheName: string): Promise<Response> {
+  const hit = await caches.match(req, { cacheName });
+  const fresh = fetch(req)
+    .then((res) => {
+      if (res.ok && res.type === 'basic') void put(cacheName, req, res.clone());
+      return res;
+    })
+    .catch(() => undefined);
+  return hit ?? (await fresh) ?? Response.error();
+}
+
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return; // TMDB, Supabase, YouTube: straight to the network / HTTP cache
+
+  if (req.mode === 'navigate') return event.respondWith(appPage(req));
+  if (url.pathname.startsWith('/catalogue/')) return event.respondWith(staleWhileRevalidate(req, CATALOGUE));
+  if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/icons/') || url.pathname === '/manifest.webmanifest')
+    return event.respondWith(cacheFirst(req, APP));
+});
