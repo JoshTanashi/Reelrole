@@ -28,6 +28,23 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png}', '**/*latin-wdth*.woff2', '**/*latin-wght*.woff2'],
         navigateFallback: '/index.html',
+        runtimeCaching: [
+          {
+            // Catalogue: instant from cache, refreshed in the background.
+            urlPattern: ({ url }) => url.pathname.startsWith('/catalogue/'),
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'catalogue' },
+          },
+          {
+            urlPattern: ({ url }) => url.hostname === 'image.tmdb.org',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'tmdb-images',
+              expiration: { maxEntries: 1500, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ],

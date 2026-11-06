@@ -4,6 +4,7 @@ import { Backdrop } from '../design/Backdrop';
 import { Wordmark } from '../design/Wordmark';
 import { spring } from '../design/motion';
 import { haptics } from '../haptics/haptics';
+import { CatalogueCheck } from './CatalogueCheck';
 
 const SWATCHES = [
   { name: 'bg-0', v: 'var(--bg-0)' },
@@ -67,7 +68,11 @@ export function App() {
 
       {/* M0 design check — removed once real screens exist */}
       <section ref={checkRef} className="mx-auto max-w-md px-5 pb-[calc(var(--sab)+48px)] pt-6">
-        <h2 className="font-title text-[2.125rem] leading-tight">Design check</h2>
+        <h2 className="font-title text-[2.125rem] leading-tight">Catalogue check</h2>
+        <p className="mt-1 mb-5 text-sm text-mid">M1: the real TMDB catalogue. Tap a poster.</p>
+        <CatalogueCheck />
+
+        <h2 className="mt-14 font-title text-[2.125rem] leading-tight">Design check</h2>
         <p className="mt-1 text-sm text-mid">M0 tokens, type and surfaces. Judge these on your phone.</p>
 
         <h3 className="mt-8 text-xs font-semibold uppercase tracking-[0.14em] text-lo">Colour</h3>
@@ -115,7 +120,7 @@ export function App() {
           </div>
         </div>
 
-        <p className="mt-10 text-center text-xs text-lo">reelrole · M0{BUILD ? ` · ${BUILD.slice(0, 7)}` : ''}</p>
+        <p className="mt-10 text-center text-xs text-lo">reelrole · M1{BUILD ? ` · ${BUILD.slice(0, 7)}` : ''}</p>
       </section>
     </div>
   );
