@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { MotionConfig, motion, useTransform } from 'motion/react';
 import { usePrefs } from '../store/prefs';
 import { useSheet } from '../store/sheet';
@@ -14,6 +14,9 @@ import { RollScreen } from '../features/roll/RollScreen';
 import { LibraryScreen } from '../features/library/LibraryScreen';
 import { TitleSheetHost } from '../features/title/TitleSheet';
 import { Sting } from './Sting';
+import { Onboarding } from '../features/onboarding/Onboarding';
+import { AnimatePresence } from 'motion/react';
+import { unlockAudio } from '../audio/synth';
 
 /** Each tab tints the living background; Find will take over mood per answer in M7. */
 const TAB_MOOD: Record<Tab, [Mood, number]> = {
@@ -35,6 +38,15 @@ export function App() {
 
   const reducedMotion = usePrefs((s) => s.reducedMotion);
   const sheetOpen = useSheet((s) => s.titleId !== null);
+  const onboarded = usePrefs((s) => s.onboarded);
+  const [firstRun] = useState(() => !usePrefs.getState().onboarded);
+
+  // iOS: audio can only start after a gesture. Unlock on the very first touch anywhere.
+  useEffect(() => {
+    const on = () => unlockAudio();
+    window.addEventListener('pointerdown', on, { once: true });
+    return () => window.removeEventListener('pointerdown', on);
+  }, []);
 
   return (
     <MotionConfig reducedMotion={reducedMotion ? 'always' : 'user'}>
@@ -52,7 +64,7 @@ export function App() {
       </motion.div>
       <TitleSheetHost />
       <Grain />
-      <Sting />
+      {firstRun ? <AnimatePresence>{!onboarded && <Onboarding />}</AnimatePresence> : <Sting />}
     </div>
     </MotionConfig>
   );

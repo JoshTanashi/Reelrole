@@ -16,11 +16,15 @@ import { Cast } from './Cast';
 import { MoreLikeThis } from './MoreLikeThis';
 import { TrailerModal } from './Trailer';
 import { fmtVotes, lengthLabel } from './format';
+import { PosterFlight } from './PosterFlight';
 
 /** Global Title Detail Sheet (HANDOVER §9.8). */
 export function TitleSheetHost() {
   const { titleId, close } = useSheet();
+  const cat = useCatalogue();
   return (
+    <>
+    {cat && <PosterFlight cat={cat} />}
     <Sheet open={titleId !== null} onClose={close} label="Title details">
       <AnimatePresence mode="wait" initial={false}>
         {titleId !== null && (
@@ -30,6 +34,7 @@ export function TitleSheetHost() {
         )}
       </AnimatePresence>
     </Sheet>
+    </>
   );
 }
 
@@ -40,6 +45,7 @@ function TitleSheetContent({ id }: { id: number }) {
   const [trailer, setTrailer] = useState(false);
   const myRating = useLibrary((s) => s.items[id]?.myRating ?? null);
   const root = useRef<HTMLDivElement>(null);
+  const flying = useSheet((s) => s.flying);
 
   useLayoutEffect(() => {
     root.current?.closest('.overflow-y-auto')?.scrollTo({ top: 0 });
@@ -84,7 +90,7 @@ function TitleSheetContent({ id }: { id: number }) {
 
       <div className="relative px-5">
         <div className="-mt-16 flex items-end gap-4">
-          <Poster title={t} size="w342" eager className="w-[104px] shrink-0 shadow-[0_16px_40px_-10px_rgba(0,0,0,0.9)]" />
+          <Poster title={t} size="w342" eager className="w-[104px] shrink-0 shadow-[0_16px_40px_-10px_rgba(0,0,0,0.9)]" style={{ opacity: flying ? 0 : 1 }} />
           <div className="min-w-0 pb-1">
             <h2 className="font-title text-[1.9rem] leading-[1.0]">{t.title}</h2>
             {detail?.originalTitle && <div className="mt-1 truncate text-xs text-lo">{detail.originalTitle}</div>}

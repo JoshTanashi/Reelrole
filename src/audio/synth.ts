@@ -18,10 +18,34 @@ function ac(): AudioContext | null {
   return ctx;
 }
 
+// Final sound pack: files listed in /sounds/manifest.json ({ "files": { "reel.stop": "reel-stop.mp3" } })
+// replace the synth for that key. Missing keys keep the placeholder.
+const samples = new Map<string, AudioBuffer>();
+let samplesLoading = false;
+function loadSamples(c: AudioContext) {
+  if (samplesLoading) return;
+  samplesLoading = true;
+  fetch('/sounds/manifest.json')
+    .then((r) => r.json() as Promise<{ files?: Record<string, string> }>)
+    .then(async (m) => {
+      for (const [key, file] of Object.entries(m.files ?? {})) {
+        try {
+          const buf = await fetch(`/sounds/${file}`).then((r) => r.arrayBuffer());
+          samples.set(key, await c.decodeAudioData(buf));
+        } catch {
+          /* keep synth for this key */
+        }
+      }
+    })
+    .catch(() => {});
+}
+
 /** Call from any user gesture; iOS needs this before sound can play. */
 export function unlockAudio() {
   const c = ac();
-  if (c && c.state !== 'running') void c.resume();
+  if (!c) return;
+  if (c.state !== 'running') void c.resume();
+  loadSamples(c);
 }
 
 function env(g: GainNode, t: number, peak: number, attack: number, decay: number) {
@@ -37,7 +61,7 @@ function noiseBuffer(c: AudioContext, seconds: number) {
   return b;
 }
 
-type Key = 'reel.tick' | 'reel.stop' | 'reel.lever' | 'ui.tap' | 'roll.confetti' | 'swipe.right' | 'swipe.left' | 'swipe.up' | 'q.pop' | 'q.whoosh' | 'count.tick' | 'count.drop' | 'reveal.drum' | 'reveal.sting';
+type Key = 'reel.tick' | 'reel.stop' | 'reel.lever' | 'ui.tap' | 'roll.confetti' | 'swipe.right' | 'swipe.left' | 'swipe.up' | 'q.pop' | 'q.whoosh' | 'count.tick' | 'count.drop' | 'reveal.drum' | 'reveal.sting' | 'ui.tab' | 'lib.add' | 'lib.like';
 
 export function play(key: Key, opts: { pitch?: number } = {}) {
   if (!usePrefs.getState().sound) return;
@@ -45,6 +69,16 @@ export function play(key: Key, opts: { pitch?: number } = {}) {
   if (!c || !master || c.state !== 'running') return;
   const t = c.currentTime + 0.005;
   const out = master;
+
+  const sample = samples.get(key);
+  if (sample) {
+    const src = c.createBufferSource();
+    src.buffer = sample;
+    if (key === 'reel.tick' && opts.pitch) src.playbackRate.value = 1 + opts.pitch * 0.5;
+    src.connect(out);
+    src.start(t);
+    return;
+  }
 
   switch (key) {
     case 'reel.tick': {
@@ -147,6 +181,55 @@ export function play(key: Key, opts: { pitch?: number } = {}) {
       env(g, t, 0.28, 0.002, 0.1);
       n.connect(hp).connect(g).connect(out);
       n.start(t);
+      break;
+    }
+    case 'ui.tab': {
+      // Tiny glassy tick.
+      const o = c.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = 2400;
+      const g = c.createGain();
+      env(g, t, 0.06, 0.001, 0.05);
+      o.connect(g).connect(out);
+      o.start(t);
+      o.stop(t + 0.07);
+      break;
+    }
+    case 'lib.add': {
+      // Soft "shk" + chime.
+      const n = c.createBufferSource();
+      n.buffer = noiseBuffer(c, 0.06);
+      const hp = c.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 4000;
+      const g = c.createGain();
+      env(g, t, 0.12, 0.002, 0.05);
+      n.connect(hp).connect(g).connect(out);
+      n.start(t);
+      const o = c.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = 1568;
+      const g2 = c.createGain();
+      env(g2, t + 0.05, 0.14, 0.003, 0.16);
+      o.connect(g2).connect(out);
+      o.start(t + 0.05);
+      o.stop(t + 0.25);
+      break;
+    }
+    case 'lib.like': {
+      // Warm pluck.
+      const o = c.createOscillator();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(659, t);
+      const lp = c.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.setValueAtTime(3000, t);
+      lp.frequency.exponentialRampToValueAtTime(600, t + 0.16);
+      const g = c.createGain();
+      env(g, t, 0.22, 0.003, 0.17);
+      o.connect(lp).connect(g).connect(out);
+      o.start(t);
+      o.stop(t + 0.2);
       break;
     }
     case 'q.pop': {

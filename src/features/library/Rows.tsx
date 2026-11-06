@@ -20,9 +20,9 @@ export function PosterRow({ title, cat, indices, numbered = false }: { title: st
               whileTap={{ scale: 0.96 }}
               transition={spring}
               className={`relative shrink-0 snap-start ${numbered ? 'flex items-end pl-1' : ''}`}
-              onClick={() => {
+              onClick={(e) => {
                 haptics.light();
-                open(t.id);
+                open(t.id, e.currentTarget.querySelector('[data-poster]'));
               }}
               aria-label={t.title}
             >

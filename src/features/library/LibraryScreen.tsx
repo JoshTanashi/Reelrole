@@ -172,9 +172,9 @@ function Grid({ cat, indices }: { cat: Catalogue; indices: number[] }) {
           whileTap={{ scale: 0.95 }}
           transition={spring}
           aria-label={cat.titles[i]!.title}
-          onClick={() => {
+          onClick={(e) => {
             haptics.light();
-            open(cat.titles[i]!.id);
+            open(cat.titles[i]!.id, e.currentTarget);
           }}
         >
           <Poster title={cat.titles[i]!} size="w342" />

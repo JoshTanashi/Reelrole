@@ -27,13 +27,14 @@ function blurUrl(hash: string): string {
 }
 
 /** 2:3 poster with BlurHash placeholder and a 200ms fade-in (HANDOVER §14). */
-export function Poster({ title, size = 'w342', className = '', eager = false }: { title: Title; size?: ImgSize; className?: string; eager?: boolean }) {
+export function Poster({ title, size = 'w342', className = '', eager = false, style }: { title: Title; size?: ImgSize; className?: string; eager?: boolean; style?: React.CSSProperties }) {
   const [loaded, setLoaded] = useState(false);
   const blur = useMemo(() => blurUrl(title.blurhash), [title.blurhash]);
   return (
     <div
+      data-poster
       className={`relative aspect-[2/3] overflow-hidden rounded-poster bg-bg-2 ${className}`}
-      style={{ backgroundColor: title.color, backgroundImage: blur ? `url(${blur})` : undefined, backgroundSize: 'cover' }}
+      style={{ backgroundColor: title.color, backgroundImage: blur ? `url(${blur})` : undefined, backgroundSize: 'cover', ...style }}
     >
       <img
         src={img(title.poster, size)}

@@ -21,7 +21,7 @@ export function SettingsSheet({ open, onClose }: { open: boolean; onClose: () =>
         <h2 className="font-title text-[2rem]">Settings</h2>
 
         <Group title="Feel">
-          <Toggle label="Sound" sub="Coming with the sound pack" value={p.sound} onChange={(v) => p.set({ sound: v })} />
+          <Toggle label="Sound" sub="Placeholder sounds until the final pack" value={p.sound} onChange={(v) => p.set({ sound: v })} />
           <Toggle label="Haptics" sub="Native app only on iPhone" value={p.haptics} onChange={(v) => p.set({ haptics: v })} />
           <Toggle label="Reduce motion" sub="Calmer animations, no drifting" value={p.reducedMotion} onChange={(v) => p.set({ reducedMotion: v })} />
         </Group>

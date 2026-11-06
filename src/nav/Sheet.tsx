@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { AnimatePresence, animate, motion, useDragControls, useMotionValue, useReducedMotionConfig, useTransform } from 'motion/react';
 import { springGentle } from '../design/motion';
 import { haptics } from '../haptics/haptics';
-import { sheetProgress } from './sheetProgress';
+import { sheetProgress, sheetTop } from './sheetProgress';
 
 /** Visible fraction of the viewport for each detent (HANDOVER §6.2: 40% / 88% / full). */
 export const DETENTS = [0.4, 0.88, 1] as const;
@@ -35,6 +35,7 @@ function SheetBody({ onClose, children, initial = 1, onProgress, label = 'Detail
 
   useEffect(() => {
     const unsub = y.on('change', (v) => {
+      sheetTop.set(v);
       const p = Math.min(1, Math.max(0, 1 - (v - yFor(DETENTS[1])) / (H - yFor(DETENTS[1]))));
       sheetProgress.set(p);
       onProgress?.(p);

@@ -90,10 +90,10 @@ export function SearchOverlay({ cat, open, onClose }: { cat: Catalogue; open: bo
                     transition={{ ...spring, delay: Math.min(n, 12) * 0.02 }}
                     whileTap={{ scale: 0.95 }}
                     className="text-left"
-                    onClick={() => {
+                    onClick={(e) => {
                       haptics.light();
                       input.current?.blur();
-                      openTitle(t.id);
+                      openTitle(t.id, e.currentTarget.firstElementChild);
                     }}
                   >
                     <Poster title={t} size="w342" />

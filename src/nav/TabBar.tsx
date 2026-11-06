@@ -3,6 +3,7 @@ import { SparkleIcon, CardsIcon, DiceFiveIcon, BookmarksSimpleIcon, type Icon } 
 import { useNav, type Tab } from '../store/nav';
 import { spring } from '../design/motion';
 import { haptics } from '../haptics/haptics';
+import { play } from '../audio/synth';
 
 const ITEMS: { id: Tab; label: string; Icon: Icon }[] = [
   { id: 'find', label: 'Find', Icon: SparkleIcon },
@@ -45,6 +46,7 @@ export function TabBar() {
               className="relative flex flex-1 flex-col items-center justify-center gap-0.5"
               onClick={() => {
                 haptics.selection();
+                play('ui.tab');
                 setTab(id);
               }}
             >

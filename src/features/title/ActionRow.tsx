@@ -5,6 +5,7 @@ import { useLibrary } from '../../store/library';
 import { useTaste, SIGNAL } from '../../store/taste';
 import { useCatalogue } from '../../data/useCatalogue';
 import { haptics } from '../../haptics/haptics';
+import { play } from '../../audio/synth';
 import { spring } from '../../design/motion';
 
 /** My List · Like · Watched · (…) Not for me — HANDOVER §9.8. */
@@ -31,7 +32,9 @@ export function ActionRow({ id }: { id: number }) {
           active={onList}
           onClick={() => {
             haptics.light();
-            learn(L.toggleList(id) ? SIGNAL.list : -SIGNAL.list);
+            const added = L.toggleList(id);
+            if (added) play('lib.add');
+            learn(added ? SIGNAL.list : -SIGNAL.list);
           }}
         >
           <AnimatePresence mode="popLayout" initial={false}>
@@ -48,6 +51,7 @@ export function ActionRow({ id }: { id: number }) {
           onClick={() => {
             haptics.light();
             if (L.toggleLike(id)) {
+              play('lib.like');
               setBurst((b) => b + 1);
               learn(SIGNAL.like);
             } else learn(-SIGNAL.like);

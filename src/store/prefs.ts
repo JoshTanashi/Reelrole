@@ -6,6 +6,7 @@ interface Prefs {
   sound: boolean;
   haptics: boolean;
   reducedMotion: boolean;
+  onboarded: boolean;
   set: (p: Partial<Omit<Prefs, 'set'>>) => void;
 }
 
@@ -15,6 +16,7 @@ export const usePrefs = create<Prefs>()(
       sound: true,
       haptics: true,
       reducedMotion: false,
+      onboarded: false,
       set: (p) => {
         if (p.haptics !== undefined) setHapticsEnabled(p.haptics);
         set(p);
